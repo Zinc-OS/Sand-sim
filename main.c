@@ -52,7 +52,9 @@ int main(int argc, char* argv[]){
 					break;
 			}
 		}
-		color=0xffffffff;
+		color+=((frame>>6) %0xfe + 1);
+		color+=((frame>>8) %0xfe + 1)<<0x8;
+		color+=((frame>>10)%0xfe + 1)<<0x16;
 		if(mouse.right){
 			int mid=mouse.x+mouse.y*width;
 			for(int i=-cursorsize;i<=cursorsize;i++){
@@ -67,13 +69,14 @@ int main(int argc, char* argv[]){
 					buff[i+j]=buff[i+j-width];
 					buff[i+j-width]=0x00;
 				}
-				if(buff[i+j-width]&&buff[i+j+1]==0x0){
-					buff[i+j+1]=buff[i+j-width];
-					buff[i+j-width]=0x00;
-				}
 				if(buff[i+j-width]&&buff[i+j-1]==0x0){
 					buff[i+j-1]=buff[i+j-width];
 					buff[i+j-width]=0x00;
+				}
+				if(buff[i+j-width]&&buff[i+j+1]==0x0){
+					buff[i+j+1]=buff[i+j-width];
+					buff[i+j-width]=0x00;
+					j++;
 				}
 			}
 		}
