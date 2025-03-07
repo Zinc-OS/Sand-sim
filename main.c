@@ -22,8 +22,8 @@ long frame=0;
 void cleanUp(){
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	SDL_Quit();
 	free(buff);
+	SDL_Quit();
 }
 
 void getInputs(){
@@ -64,9 +64,10 @@ int main(int argc, char* argv[]){
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
 		getInputs();
-		color+=((frame>>6) %0xfe + 1);
-		color+=((frame>>8) %0xfe + 1)<<0x8;
-		color+=((frame>>10)%0xfe + 1)<<0x16;
+		color=0;
+		color+=(((frame>>2)+0x20)%0xf0 + 0xf);
+		color+=(((frame>>2)+0x40)%0xf0 + 0xf)<<8;
+		color+=(((frame>>2)+0x60)%0xf0 + 0xf)<<16;
 		if(mouse.right){
 			int mid=mouse.x+mouse.y*width;
 			for(int i=-cursorsize;i<=cursorsize;i++){
@@ -75,20 +76,28 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
+		int dit=0;
 		for(int i=(height-1)*width;i>=width;i-=width){
 			for(int j=0;j<width;j++){
 				if(buff[i+j]==0&&buff[i+j-width]){
 					buff[i+j]=buff[i+j-width];
 					buff[i+j-width]=0x00;
+					continue;
 				}
-				if(buff[i+j-width]&&buff[i+j-1]==0x0){
+				
+				if(buff[i+j-width]&&buff[i+j-1]==0x0&&dit){
 					buff[i+j-1]=buff[i+j-width];
 					buff[i+j-width]=0x00;
+					j++;
+					dit=0;
+					continue;
 				}
-				if(buff[i+j-width]&&buff[i+j+1]==0x0){
+				if(buff[i+j-width]&&buff[i+j+1]==0x0&&!dit){
 					buff[i+j+1]=buff[i+j-width];
 					buff[i+j-width]=0x00;
 					j++;
+					dit=1;
+					continue;
 				}
 			}
 		}
