@@ -63,8 +63,15 @@ int main(int argc, char* argv[]){
 				if(buff[i+j]==0&&buff[i+j-width]==0xffffffff){
 					buff[i+j]=0xffffffff;
 					buff[i+j-width]=0x00;
-					
-				}				
+				}
+				if(buff[i+j-width]==0xffffffff&&buff[i+j+1]==0x0){
+					buff[i+j+1]=0xffffffff;
+					buff[i+j-width]=0x00;
+				}
+				if(buff[i+j-width]==0xffffffff&&buff[i+j-1]==0x0){
+					buff[i+j-1]=0xffffffff;
+					buff[i+j-width]=0x00;
+				}
 			}
 		}
 		SDL_UpdateTexture(texture, NULL, buff, width*sizeof(uint32_t));
