@@ -1,0 +1,5 @@
+*.swp
+SDL2
+sdl2_dir
+*.exe
+SDL2.dll

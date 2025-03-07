@@ -11,11 +11,13 @@ struct{
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
-uint32_t* buff;
+uint32_t*buff;
 int rnng;
 SDL_Event E;
-const int cursorsize=2;
-int width=256, height=256;
+const int cursorsize=4;
+int width=512, height=512;
+uint32_t color=0xffffffff;
+long frame=0;
 int main(int argc, char* argv[]){
 	
 	if(SDL_Init(SDL_INIT_EVERYTHING))
@@ -50,26 +52,27 @@ int main(int argc, char* argv[]){
 					break;
 			}
 		}
+		color=0xffffffff;
 		if(mouse.right){
 			int mid=mouse.x+mouse.y*width;
 			for(int i=-cursorsize;i<=cursorsize;i++){
 				for(int j=-cursorsize;j<=cursorsize;j++){
-					buff[mid+i+j*width]=0xffffffff;
+					buff[mid+i+j*width]=color;
 				}
 			}
 		}
 		for(int i=(height-1)*width;i>=width;i-=width){
 			for(int j=0;j<width;j++){
-				if(buff[i+j]==0&&buff[i+j-width]==0xffffffff){
-					buff[i+j]=0xffffffff;
+				if(buff[i+j]==0&&buff[i+j-width]){
+					buff[i+j]=buff[i+j-width];
 					buff[i+j-width]=0x00;
 				}
-				if(buff[i+j-width]==0xffffffff&&buff[i+j+1]==0x0){
-					buff[i+j+1]=0xffffffff;
+				if(buff[i+j-width]&&buff[i+j+1]==0x0){
+					buff[i+j+1]=buff[i+j-width];
 					buff[i+j-width]=0x00;
 				}
-				if(buff[i+j-width]==0xffffffff&&buff[i+j-1]==0x0){
-					buff[i+j-1]=0xffffffff;
+				if(buff[i+j-width]&&buff[i+j-1]==0x0){
+					buff[i+j-1]=buff[i+j-width];
 					buff[i+j-width]=0x00;
 				}
 			}
@@ -78,6 +81,7 @@ int main(int argc, char* argv[]){
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
 		SDL_Delay(16);
+		frame++;
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
