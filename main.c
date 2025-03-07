@@ -18,6 +18,34 @@ const int cursorsize=4;
 int width=512, height=512;
 uint32_t color=0xffffffff;
 long frame=0;
+
+void cleanUp(){
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	free(buff);
+}
+
+void getInputs(){
+	while(SDL_PollEvent(&E)){
+		switch(E.type){
+			case SDL_QUIT:
+				rnng=0;
+				break;
+			case SDL_MOUSEMOTION:
+				mouse.x = E.motion.x;
+				mouse.y = E.motion.y;
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				mouse.right=1;
+				break;
+			case SDL_MOUSEBUTTONUP:
+				mouse.right=0;
+				break;
+		}
+	}
+}
+
 int main(int argc, char* argv[]){
 	
 	if(SDL_Init(SDL_INIT_EVERYTHING))
@@ -35,23 +63,7 @@ int main(int argc, char* argv[]){
 	while(rnng){
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
-		while(SDL_PollEvent(&E)){
-			switch(E.type){
-				case SDL_QUIT:
-					rnng=0;
-					break;
-				case SDL_MOUSEMOTION:
-					mouse.x = E.motion.x;
-					mouse.y = E.motion.y;
-					break;
-				case SDL_MOUSEBUTTONDOWN:
-					mouse.right=1;
-					break;
-				case SDL_MOUSEBUTTONUP:
-					mouse.right=0;
-					break;
-			}
-		}
+		getInputs();
 		color+=((frame>>6) %0xfe + 1);
 		color+=((frame>>8) %0xfe + 1)<<0x8;
 		color+=((frame>>10)%0xfe + 1)<<0x16;
@@ -86,9 +98,7 @@ int main(int argc, char* argv[]){
 		SDL_Delay(16);
 		frame++;
 	}
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-	free(buff);
+	
+	cleanUp();
 	return 0;
 }
