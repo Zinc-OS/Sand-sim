@@ -14,7 +14,7 @@ SDL_Texture* texture;
 uint32_t*buff;
 int rnng;
 SDL_Event E;
-const int cursorsize=4;
+int cursorsize=4;
 int width=512, height=512;
 uint32_t color=0xffffffff;
 long frame=0;
@@ -83,6 +83,9 @@ void getInputs(){
 
 				}
 				break;
+			case SDL_MOUSEWHEEL:
+				cursorsize+=E.wheel.y;
+				break;
 		}
 	}
 }
@@ -128,6 +131,7 @@ void updateSand(){
 		}
 	}
 }
+
 uint32_t hue(int frame, int time){
 	int x = frame%(time*3);
 	uint32_t color=0x00;
@@ -180,6 +184,7 @@ int main(int argc, char* argv[]){
 	window = SDL_CreateWindow("Sand", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+	SDL_ShowCursor(0);
 	rnng=1;
 	buff=malloc(width*height*sizeof(uint32_t));
 	for(int i=0;i<width*height;i++){
@@ -193,7 +198,13 @@ int main(int argc, char* argv[]){
 		updateSand();
 		SDL_UpdateTexture(texture, NULL, buff, width*sizeof(uint32_t));
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
-        SDL_RenderPresent(renderer);
+		
+		SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		SDL_SetRenderDrawColor(renderer, color&0xff0000>>16, color&0xff00>>8, color&0xff, SDL_ALPHA_OPAQUE);
+		SDL_RenderFillRect(renderer, &cursor);
+        
+		SDL_RenderPresent(renderer);
 		SDL_Delay(16);
 		frame++;
 	}
