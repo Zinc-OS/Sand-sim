@@ -20,6 +20,7 @@ uint32_t color=0xffffffff;
 long frame=0;
 
 void cleanUp(){
+	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	free(buff);
@@ -37,10 +38,50 @@ void getInputs(){
 				mouse.y = E.motion.y;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				mouse.right=1;
+				switch(E.button.button){
+					case SDL_BUTTON_RIGHT:
+						mouse.right=1;
+						break;
+					case SDL_BUTTON_MIDDLE:
+						mouse.middle=1;
+						break;
+					case SDL_BUTTON_LEFT:
+						mouse.left=1;
+						break;
+				}
 				break;
 			case SDL_MOUSEBUTTONUP:
-				mouse.right=0;
+				switch(E.button.button){
+					case SDL_BUTTON_RIGHT:
+						mouse.right=0;
+						break;
+					case SDL_BUTTON_MIDDLE:
+						mouse.middle=0;
+						break;
+					case SDL_BUTTON_LEFT:
+						mouse.left=0;
+						break;
+				}
+				break;
+			case SDL_WINDOWEVENT:
+				if(E.window.event==SDL_WINDOWEVENT_RESIZED){
+					int oldheight=height;
+					int oldwidth=width;
+					width=E.window.data1;
+					height=E.window.data2;
+					uint32_t* buff2=malloc(sizeof(uint32_t)*width*height);
+					for(int i=0;i<oldheight;i++){
+						for(int j=0;j<oldwidth;j++){
+							if(i*width+j<width*height&&i*width+j>=0)
+								buff2[i*width+j]=buff[i*oldwidth+j];
+						}
+					}
+					free(buff);
+					buff = buff2;
+					SDL_DestroyTexture(texture);
+					texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+
+				}
 				break;
 		}
 	}
@@ -53,7 +94,7 @@ static inline void setPixel(int pos, uint32_t color){
 }
 
 void updateSand(){
-	if(mouse.right){
+	if(mouse.left){
 		int mid=mouse.x+mouse.y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
 			for(int j=-cursorsize;j<=cursorsize;j++){
@@ -136,7 +177,7 @@ int main(int argc, char* argv[]){
 	{
 		printf("Error %s", SDL_GetError());
 	}
-	window = SDL_CreateWindow("Sand", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Sand", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	rnng=1;
