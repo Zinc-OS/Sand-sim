@@ -46,6 +46,90 @@ void getInputs(){
 	}
 }
 
+static inline void setPixel(int pos, uint32_t color){
+	if(pos<width*height&&pos>=0){
+		buff[pos]=color;
+	}
+}
+
+void updateSand(){
+	if(mouse.right){
+		int mid=mouse.x+mouse.y*width;
+		for(int i=-cursorsize;i<=cursorsize;i++){
+			for(int j=-cursorsize;j<=cursorsize;j++){
+				setPixel(mid+i+j*width, color);
+			}
+		}
+	}
+	int dit=0;
+	for(int i=(height-1)*width;i>=width;i-=width){
+		for(int j=0;j<width;j++){
+			if(buff[i+j]==0&&buff[i+j-width]){
+				setPixel(i+j, buff[i+j-width]);
+				setPixel(i+j-width, 0x00);
+				continue;
+			}
+			
+			if(buff[i+j-width]&&buff[i+j-1]==0x0&&dit){
+				setPixel(i+j-1, buff[i+j-width]);
+				setPixel(i+j-width, 0x00);
+				j++;
+				dit=0;
+				continue;
+			}
+			if(buff[i+j-width]&&buff[i+j+1]==0x0&&!dit){
+				setPixel(i+j+1, buff[i+j-width]);
+				setPixel(i+j-width, 0x00);
+				j++;
+				dit=1;
+				continue;
+			}
+		}
+	}
+}
+uint32_t hue(int frame, int time){
+	int x = frame%(time*3);
+	uint32_t color=0x00;
+	if(x<time){
+		int c1=0xff*(time-x)/time;
+		int c2=0xff*x/time;
+		color+=c1<<16;
+		color+=c2<<8;
+	}else if(x<time*2){
+		x-=time;
+		int c1=0xff*(time-x)/time;
+		int c2=0xff*x/time;
+		color+=c1<<8;
+		color+=c2;
+	}else{
+		x-=time*2;
+		int c1=0xff*(time-x)/time;
+		int c2=0xff*x/time;
+		color+=c1;
+		color+=c2<<16;
+	}
+	return color;
+}
+
+uint32_t bw(int frame, int time){
+	int x = frame%(time*2);
+	int c=0x00;
+	if(x<time){
+		c=0xf+0xe0*x/time;
+	}else{
+		x-=time;
+		c=0xf+0xe0*(time-x)/time;
+	}
+	c&=0xff;
+	return (c<<16)+(c<<8)+c;
+}
+
+void updateColor(){
+	//color=hue(frame, 200);
+	color=bw(frame, 100);
+}	
+
+
 int main(int argc, char* argv[]){
 	
 	if(SDL_Init(SDL_INIT_EVERYTHING))
@@ -58,49 +142,14 @@ int main(int argc, char* argv[]){
 	rnng=1;
 	buff=malloc(width*height*sizeof(uint32_t));
 	for(int i=0;i<width*height;i++){
-		buff[i]=0;
+		setPixel(i, 0x00);
 	}
 	while(rnng){
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
 		getInputs();
-		color=0;
-		color+=(((frame>>2)+0x20)%0xf0 + 0xf);
-		color+=(((frame>>2)+0x40)%0xf0 + 0xf)<<8;
-		color+=(((frame>>2)+0x60)%0xf0 + 0xf)<<16;
-		if(mouse.right){
-			int mid=mouse.x+mouse.y*width;
-			for(int i=-cursorsize;i<=cursorsize;i++){
-				for(int j=-cursorsize;j<=cursorsize;j++){
-					buff[mid+i+j*width]=color;
-				}
-			}
-		}
-		int dit=0;
-		for(int i=(height-1)*width;i>=width;i-=width){
-			for(int j=0;j<width;j++){
-				if(buff[i+j]==0&&buff[i+j-width]){
-					buff[i+j]=buff[i+j-width];
-					buff[i+j-width]=0x00;
-					continue;
-				}
-				
-				if(buff[i+j-width]&&buff[i+j-1]==0x0&&dit){
-					buff[i+j-1]=buff[i+j-width];
-					buff[i+j-width]=0x00;
-					j++;
-					dit=0;
-					continue;
-				}
-				if(buff[i+j-width]&&buff[i+j+1]==0x0&&!dit){
-					buff[i+j+1]=buff[i+j-width];
-					buff[i+j-width]=0x00;
-					j++;
-					dit=1;
-					continue;
-				}
-			}
-		}
+		updateColor();
+		updateSand();
 		SDL_UpdateTexture(texture, NULL, buff, width*sizeof(uint32_t));
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
