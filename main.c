@@ -217,7 +217,9 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<width*height;i++){
 		setPixel(i, 0x00);
 	}
+	
 	while(rnng){
+		uint32_t startTime=SDL_GetTicks();
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
 		getInputs();
@@ -230,7 +232,13 @@ int main(int argc, char* argv[]){
 		updateCursor();
         
 		SDL_RenderPresent(renderer);
-		SDL_Delay(16);
+		
+		
+		uint32_t delayTime=(SDL_GetTicks()-startTime);
+		if(delayTime>16)
+			delayTime=16;
+		delayTime=16-delayTime;
+		SDL_Delay(delayTime);
 		frame++;
 	}
 	
