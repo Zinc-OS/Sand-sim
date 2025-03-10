@@ -148,6 +148,13 @@ void updateSand(){
 	}
 }
 
+void updateCursor(){
+	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	SDL_SetRenderDrawColor(renderer, (color&0xff0000)>>16, (color&0xff00)>>8, color&0xff, SDL_ALPHA_OPAQUE);
+	SDL_RenderFillRect(renderer, &cursor);
+}
+
 uint32_t hue(int frame, int time, uint8_t value){
 	int x = frame%(time*3);
 	uint32_t color=0x00;
@@ -219,10 +226,7 @@ int main(int argc, char* argv[]){
 		SDL_UpdateTexture(texture, NULL, buff, width*sizeof(uint32_t));
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
 		
-		SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-		SDL_SetRenderDrawColor(renderer, (color&0xff0000)>>16, (color&0xff00)>>8, color&0xff, SDL_ALPHA_OPAQUE);
-		SDL_RenderFillRect(renderer, &cursor);
+		updateCursor();
         
 		SDL_RenderPresent(renderer);
 		SDL_Delay(16);
