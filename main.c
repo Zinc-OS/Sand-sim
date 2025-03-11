@@ -135,24 +135,18 @@ void updateSand(){
 				buff[i+j].on=1;
 				buff[i+j].color=buff[i+j-width].color;
 				buff[i+j-width].on=0;
-				continue;
-			}
-			
-			if(buff[i+j-width].on&&!buff[i+j-1].on&&dit){
+			} else if(buff[i+j-width].on&&!buff[i+j-1].on&&dit){
 				buff[i+j-1].color=buff[i+j-width].color;
 				buff[i+j-1].on=1;
 				buff[i+j-width].on=0;
 				j++;
 				dit=0;
-				continue;
-			}
-			if(buff[i+j-width].on&&!buff[i+j+1].on&&!dit){
+			} else if(buff[i+j-width].on&&!buff[i+j+1].on&&!dit){
 				buff[i+j+1].color=buff[i+j-width].color;
 				buff[i+j+1].on=1;
 				buff[i+j-width].on=0;
 				j++;
 				dit=1;
-				continue;
 			}
 		}
 	}
