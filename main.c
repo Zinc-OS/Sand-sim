@@ -30,8 +30,9 @@ SDL_Renderer* renderer;
 SDL_Texture* texture;
 typedef struct{
 	uint32_t color;
-	int on;
 	uint32_t velocity;
+	int on;
+	int touched;
 } buffer;
 buffer* buff;
 uint32_t* surf;
@@ -115,6 +116,9 @@ void getInputs(){
 }
 
 void updateSand(){
+	for(int i=0;i<width*height;i++){
+		buff[i].touched=0;
+	}
 	if(mouse.left){
 		int mid = mouse.x+mouse.y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
@@ -127,14 +131,14 @@ void updateSand(){
 	int dit=0;
 	for(int i=(height-1)*width;i>width;i-=width){
 		for(int j=0;j<width;j++){
-			if(buff[i+j].on==0&&buff[i+j-width].on){
+			if(!buff[i+j].on&&buff[i+j-width].on){
 				buff[i+j].on=1;
 				buff[i+j].color=buff[i+j-width].color;
 				buff[i+j-width].on=0;
 				continue;
 			}
 			
-			if(buff[i+j-width].on&&buff[i+j-1].on==0&&dit){
+			if(buff[i+j-width].on&&!buff[i+j-1].on&&dit){
 				buff[i+j-1].color=buff[i+j-width].color;
 				buff[i+j-1].on=1;
 				buff[i+j-width].on=0;
@@ -142,7 +146,7 @@ void updateSand(){
 				dit=0;
 				continue;
 			}
-			if(buff[i+j-width].on&&buff[i+j+1].on==0&&!dit){
+			if(buff[i+j-width].on&&!buff[i+j+1].on&&!dit){
 				buff[i+j+1].color=buff[i+j-width].color;
 				buff[i+j+1].on=1;
 				buff[i+j-width].on=0;
