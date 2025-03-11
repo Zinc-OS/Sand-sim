@@ -236,7 +236,7 @@ int main(int argc, char* argv[]){
 		updateSand();
 		
 		for(int i=0;i<width*height;i++){
-			surf[i]=0x00;
+			surf[i]=0xff111222;
 			if(buff[i].on)
 				surf[i]=buff[i].color;
 		}
