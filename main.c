@@ -128,17 +128,20 @@ void updateSand(){
 					continue;
 				buff[pos].on=1;
 				buff[pos].color=color;
+				buff[pos].velocity=1;
 			}
 		}
 	}
 	int dit=0;
 	for(int i=(height-1)*width;i>width;i-=width){
 		for(int j=i;j<width+i;j++){
-			if(!buff[j].touched){
+			if(!buff[j].touched){			
 				if(!buff[j].on&&buff[j-width].on){
 					buff[j].on=1;
+					buff[j].velocity=buff[j-width].velocity;
+					buff[j].velocity++;
 					buff[j].color=buff[j-width].color;
-					buff[j-width].on=0;
+					buff[j-width].on=0;					
 				} else if(buff[j-width].on&&!buff[j-1].on&&dit){
 					buff[j-1].color=buff[j-width].color;
 					buff[j-1].on=1;
