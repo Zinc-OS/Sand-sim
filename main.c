@@ -38,8 +38,8 @@ buffer* buff;
 uint32_t* surf;
 int rnng;
 SDL_Event E;
-int cursorsize=4;
-int width =512, height=512;
+int cursorsize = 4;
+int width = 512, height = 512;
 uint32_t color = 0xffffffff;
 long frame=0;
 
@@ -123,28 +123,31 @@ void updateSand(){
 		int mid = mouse.x+mouse.y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
 			for(int j=-cursorsize;j<=cursorsize;j++){
-				buff[mid+i+j*width].on=1;
-				buff[mid+i+j*width].color=color;
+				const int pos=mid+i+j*width;
+				if(pos<0||pos>width*height)
+					continue;
+				buff[pos].on=1;
+				buff[pos].color=color;
 			}
 		}
 	}
 	int dit=0;
 	for(int i=(height-1)*width;i>width;i-=width){
-		for(int j=0;j<width;j++){
-			if(!buff[i+j].on&&buff[i+j-width].on){
-				buff[i+j].on=1;
-				buff[i+j].color=buff[i+j-width].color;
-				buff[i+j-width].on=0;
-			} else if(buff[i+j-width].on&&!buff[i+j-1].on&&dit){
-				buff[i+j-1].color=buff[i+j-width].color;
-				buff[i+j-1].on=1;
-				buff[i+j-width].on=0;
+		for(int j=i;j<width+i;j++){
+			if(!buff[j].on&&buff[j-width].on){
+				buff[j].on=1;
+				buff[j].color=buff[j-width].color;
+				buff[j-width].on=0;
+			} else if(buff[j-width].on&&!buff[j-1].on&&dit){
+				buff[j-1].color=buff[j-width].color;
+				buff[j-1].on=1;
+				buff[j-width].on=0;
 				j++;
 				dit=0;
-			} else if(buff[i+j-width].on&&!buff[i+j+1].on&&!dit){
-				buff[i+j+1].color=buff[i+j-width].color;
-				buff[i+j+1].on=1;
-				buff[i+j-width].on=0;
+			} else if(buff[j-width].on&&!buff[j+1].on&&!dit){
+				buff[j+1].color=buff[j-width].color;
+				buff[j+1].on=1;
+				buff[j-width].on=0;
 				j++;
 				dit=1;
 			}
