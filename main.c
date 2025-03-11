@@ -93,7 +93,7 @@ void getInputs(){
 					width = E.window.data1;
 					height = E.window.data2;
 					buffer* buff2=malloc(sizeof(buffer)*width*height);
-					surf=realloc(surf, width*height);
+					surf = realloc(surf, width*height*sizeof(uint32_t));
 					for(int i=0;i<oldheight;i++){
 						for(int j=0;j<oldwidth;j++){
 							if(i*width+j<width*height&&i*width+j>=0)
@@ -246,7 +246,6 @@ int main(int argc, char* argv[]){
 		updateCursor();
         
 		SDL_RenderPresent(renderer);
-		
 		
 		uint32_t delayTime=(SDL_GetTicks()-startTime);
 		if(delayTime>16)
