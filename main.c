@@ -12,9 +12,11 @@ Sand Sim is distributed in the hope that it will be useful, but WITHOUT ANY WARR
 You should have received a copy of the GNU General Public License along with RomanNumerals. 
 If not, see <https://www.gnu.org/licenses/>.*/
 
-#include <stdio.h>
+
 #include <SDL2/SDL.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 struct{
 	int right;
 	int left;
@@ -26,8 +28,13 @@ struct{
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
-uint32_t* buff;
-
+typedef struct{
+	uint32_t color;
+	int on;
+	uint32_t velocity;
+} buffer;
+buffer* buff;
+uint32_t* surf;
 int rnng;
 SDL_Event E;
 int cursorsize=4;
@@ -85,11 +92,12 @@ void getInputs(){
 					int oldwidth = width;
 					width = E.window.data1;
 					height = E.window.data2;
-					uint32_t* buff2=malloc(sizeof(uint32_t)*width*height);
+					buffer* buff2=malloc(sizeof(buffer)*width*height);
+					surf=realloc(surf, width*height);
 					for(int i=0;i<oldheight;i++){
 						for(int j=0;j<oldwidth;j++){
 							if(i*width+j<width*height&&i*width+j>=0)
-								buff2[i*width+j] = buff[i*oldwidth+j];
+								memcpy(buff2+i*width+j, buff+i*oldwidth+j, sizeof(buffer));;
 						}
 					}
 					free(buff);
@@ -106,40 +114,38 @@ void getInputs(){
 	}
 }
 
-static inline void setPixel(int pos, uint32_t color){
-	if(pos<width*height&&pos>=0){
-		buff[pos] = color;
-	}
-}
-
 void updateSand(){
 	if(mouse.left){
 		int mid = mouse.x+mouse.y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
 			for(int j=-cursorsize;j<=cursorsize;j++){
-				setPixel(mid+i+j*width, color);
+				buff[mid+i+j*width].on=1;
+				buff[mid+i+j*width].color=color;
 			}
 		}
 	}
 	int dit=0;
-	for(int i=(height-1)*width;i>=width;i-=width){
+	for(int i=(height-1)*width;i>width;i-=width){
 		for(int j=0;j<width;j++){
-			if(buff[i+j]==0&&buff[i+j-width]){
-				setPixel(i+j, buff[i+j-width]);
-				setPixel(i+j-width, 0x00);
+			if(buff[i+j].on==0&&buff[i+j-width].on){
+				buff[i+j].on=1;
+				buff[i+j].color=buff[i+j-width].color;
+				buff[i+j-width].on=0;
 				continue;
 			}
 			
-			if(buff[i+j-width]&&buff[i+j-1]==0x0&&dit){
-				setPixel(i+j-1, buff[i+j-width]);
-				setPixel(i+j-width, 0x00);
+			if(buff[i+j-width].on&&buff[i+j-1].on==0&&dit){
+				buff[i+j-1].color=buff[i+j-width].color;
+				buff[i+j-1].on=1;
+				buff[i+j-width].on=0;
 				j++;
 				dit=0;
 				continue;
 			}
-			if(buff[i+j-width]&&buff[i+j+1]==0x0&&!dit){
-				setPixel(i+j+1, buff[i+j-width]);
-				setPixel(i+j-width, 0x00);
+			if(buff[i+j-width].on&&buff[i+j+1].on==0&&!dit){
+				buff[i+j+1].color=buff[i+j-width].color;
+				buff[i+j+1].on=1;
+				buff[i+j-width].on=0;
 				j++;
 				dit=1;
 				continue;
@@ -186,10 +192,10 @@ uint32_t bw(int frame, int time){
 	int x = frame%(time*2);
 	int c=0x00;
 	if(x<time){
-		c = 0xe0*x/time;
+		c = 0xff*x/time;
 	}else{
 		x-=time;
-		c = 0xe0*(time-x)/time;
+		c = 0xff*(time-x)/time;
 	}
 	c+=0x11;
 	c&=0xff;
@@ -213,10 +219,12 @@ int main(int argc, char* argv[]){
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	SDL_ShowCursor(0);
 	rnng = 1;
-	buff = malloc(width*height*sizeof(uint32_t));
+	buff = malloc(width*height*sizeof(*buff));
 	for(int i=0;i<width*height;i++){
-		setPixel(i, 0x00);
+		buff[i].on=0;
 	}
+	
+	surf=malloc(width*height*sizeof(uint32_t));
 	
 	while(rnng){
 		uint32_t startTime=SDL_GetTicks();
@@ -226,7 +234,13 @@ int main(int argc, char* argv[]){
 		updateColor();
 		updateSand();
 		
-		SDL_UpdateTexture(texture, NULL, buff, width*sizeof(uint32_t));
+		for(int i=0;i<width*height;i++){
+			surf[i]=0x00;
+			if(buff[i].on)
+				surf[i]=buff[i].color;
+		}
+		
+		SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
 		
 		updateCursor();
@@ -238,7 +252,8 @@ int main(int argc, char* argv[]){
 		if(delayTime>16)
 			delayTime=16;
 		delayTime=16-delayTime;
-		SDL_Delay(delayTime);
+		if(delayTime)
+			SDL_Delay(delayTime);
 		frame++;
 	}
 	
