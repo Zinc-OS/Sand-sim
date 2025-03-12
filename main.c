@@ -17,6 +17,7 @@ If not, see <https://www.gnu.org/licenses/>.*/
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 struct{
 	int right;
 	int left;
@@ -109,7 +110,8 @@ void getInputs(){
 				}
 				break;
 			case SDL_MOUSEWHEEL:
-				cursorsize+=E.wheel.y;
+				if(cursorsize>0||E.wheel.y>0)
+					cursorsize+=E.wheel.y;
 				break;
 		}
 	}
