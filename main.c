@@ -26,6 +26,8 @@ struct{
 	int y;
 } mouse = {0,0,0,0,0};
 
+int ctrl=0;
+
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
@@ -52,6 +54,18 @@ void cleanUp(){
 	SDL_Quit();
 }
 
+void saveImg(char *name){
+	FILE* out=fopen(name, "w");
+	fprintf(out, "P3\n");
+	fprintf(out, "%d %d\n255\n", width, height);
+	for(int i=0;i<width*height;i++){
+		uint32_t color=surf[i];
+		fprintf(out, "%d\t%d\t%d\n", (color&0xff0000)>>16, (color&0xff00)>>8, (color&0xff));
+	}
+	fclose(out);
+	printf("saved %s\n", name);
+}
+
 void getInputs(){
 	while(SDL_PollEvent(&E)){
 		switch(E.type){
@@ -74,6 +88,22 @@ void getInputs(){
 						mouse.left = 1;
 						break;
 				}
+				break;
+			case SDL_KEYDOWN:{
+				SDL_Keycode sym=E.key.keysym.sym;
+				if(sym==SDLK_LCTRL||sym==SDLK_RCTRL)
+					ctrl=1;
+			}
+				break;
+			case SDL_KEYUP:{
+				SDL_Keycode sym=E.key.keysym.sym;
+				if(sym==SDLK_LCTRL||sym==SDLK_RCTRL)
+					ctrl=0;
+				if(sym==SDLK_s&&ctrl==1){
+					saveImg("test.ppm");
+				}
+				
+			}
 				break;
 			case SDL_MOUSEBUTTONUP:
 				switch(E.button.button){

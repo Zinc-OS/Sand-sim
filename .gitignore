@@ -4,3 +4,5 @@ sdl2_dir
 *.exe
 *.dll
 *.sh
+*.png
+*.ppm
