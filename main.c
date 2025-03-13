@@ -194,12 +194,13 @@ void updateSand(){
 					buff[j-width].type=air;
 					j++;
 					dit=1;
+				} else{
+					dit=!dit;
 				}
 			}
 		}
 	}
 }
-
 void updateCursor(){
 	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
