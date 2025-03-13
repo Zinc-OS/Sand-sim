@@ -171,14 +171,14 @@ void mouseDraw(objType type){
 		}
 	}
 }
+
 void updateSand(){
 	for(int i=0;i<width*height;i++){
 		buff[i].touched=0;
 	}
 	if(mouse.right||mouse.left&&ctrl){
 		mouseDraw(rock);
-	}
-	else if(mouse.left){
+	} else if(mouse.left){
 		mouseDraw(sand);
 	}
 	int dit=0;
@@ -226,14 +226,14 @@ uint32_t hue(int frame, int time, uint8_t value){
 		color+=c1<<16;
 		color+=c2<<8;
 		color+=value;
-	}else if(x<time*2){
+	} else if(x<time*2){
 		x-=time;
 		int c1 = 0xff*(time-x)/time;
 		int c2 = 0xff*x/time;
 		color+=c1<<8;
 		color+=c2;
 		color+=value<<16;
-	}else{
+	} else{
 		x-=time*2;
 		int c1 = 0xff*(time-x)/time;
 		int c2 = 0xff*x/time;
@@ -249,7 +249,7 @@ uint32_t bw(int frame, int time){
 	int c=0x00;
 	if(x<time){
 		c = 0xff*x/time;
-	}else{
+	} else{
 		x-=time;
 		c = 0xff*(time-x)/time;
 	}
@@ -263,6 +263,20 @@ void updateColor(){
 	//color = bw(frame, 100);
 }	
 
+void updateSurf(){
+	for(int i=0;i<width*height;i++){
+		switch(buff[i].type){
+			case air:
+				surf[i]=0xff111222;
+				break;
+			case sand:
+				surf[i]=buff[i].color;
+				break;
+			case rock:
+				surf[i]=0xff999999;
+		}
+	}
+}
 
 int main(int argc, char* argv[]){
 	
@@ -286,23 +300,12 @@ int main(int argc, char* argv[]){
 		uint32_t startTime=SDL_GetTicks();
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
+		
 		getInputs();
+		
 		updateColor();
 		updateSand();
-		
-		for(int i=0;i<width*height;i++){
-			
-			switch(buff[i].type){
-				case air:
-					surf[i]=0xff111222;
-					break;
-				case sand:
-					surf[i]=buff[i].color;
-					break;
-				case rock:
-					surf[i]=0xff999999;
-			}
-		}
+		updateSurf();
 		
 		SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
 		SDL_RenderCopy(renderer, texture, NULL, NULL);
