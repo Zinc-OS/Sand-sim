@@ -31,13 +31,15 @@ int ctrl=0;
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
+typedef enum { air, sand, rock} objType;
 typedef struct{
 	uint32_t color;
 	uint32_t velocity;
-	int on;
+	objType type;
 	int touched;
 } buffer;
 buffer* buff;
+
 uint32_t* surf;
 int rnng;
 SDL_Event E;
@@ -147,43 +149,49 @@ void getInputs(){
 	}
 }
 
-void updateSand(){
-	for(int i=0;i<width*height;i++){
-		buff[i].touched=0;
-	}
-	if(mouse.left){
-		int mid = mouse.x+mouse.y*width;
+void mouseDraw(objType type){
+	int mid = mouse.x+mouse.y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
 			for(int j=-cursorsize;j<=cursorsize;j++){
 				const int pos=mid+i+j*width;
 				if(pos<0||pos>width*height)
 					continue;
-				buff[pos].on=1;
+				buff[pos].type=type;
 				buff[pos].color=color;
 				buff[pos].velocity=1;
 			}
 		}
+}
+void updateSand(){
+	for(int i=0;i<width*height;i++){
+		buff[i].touched=0;
+	}
+	if(mouse.right||mouse.left&&ctrl){
+		mouseDraw(rock);
+	}
+	else if(mouse.left){
+		mouseDraw(sand);
 	}
 	int dit=0;
 	for(int i=(height-1)*width;i>width;i-=width){
 		for(int j=i;j<width+i;j++){
 			if(!buff[j].touched){			
-				if(!buff[j].on&&buff[j-width].on){
-					buff[j].on=1;
+				if(buff[j].type==air&&buff[j-width].type==sand){
+					buff[j].type=sand;
 					buff[j].velocity=buff[j-width].velocity;
 					buff[j].velocity++;
 					buff[j].color=buff[j-width].color;
-					buff[j-width].on=0;					
-				} else if(buff[j-width].on&&!buff[j-1].on&&dit){
+					buff[j-width].type=air;					
+				} else if(buff[j-width].type==sand&&buff[j-1].type==air&&dit){
 					buff[j-1].color=buff[j-width].color;
-					buff[j-1].on=1;
-					buff[j-width].on=0;
+					buff[j-1].type=sand;
+					buff[j-width].type=air;
 					j++;
 					dit=0;
-				} else if(buff[j-width].on&&!buff[j+1].on&&!dit){
+				} else if(buff[j-width].type==sand&&buff[j+1].type==air&&!dit){
 					buff[j+1].color=buff[j-width].color;
-					buff[j+1].on=1;
-					buff[j-width].on=0;
+					buff[j+1].type=sand;
+					buff[j-width].type=air;
 					j++;
 					dit=1;
 				}
@@ -259,7 +267,7 @@ int main(int argc, char* argv[]){
 	rnng = 1;
 	buff = malloc(width*height*sizeof(*buff));
 	for(int i=0;i<width*height;i++){
-		buff[i].on=0;
+		buff[i].type=0;
 	}
 	
 	surf=malloc(width*height*sizeof(uint32_t));
@@ -273,9 +281,17 @@ int main(int argc, char* argv[]){
 		updateSand();
 		
 		for(int i=0;i<width*height;i++){
-			surf[i]=0xff111222;
-			if(buff[i].on)
-				surf[i]=buff[i].color;
+			
+			switch(buff[i].type){
+				case air:
+					surf[i]=0xff111222;
+					break;
+				case sand:
+					surf[i]=buff[i].color;
+					break;
+				case rock:
+					surf[i]=0xff999999;
+			}
 		}
 		
 		SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
