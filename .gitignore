@@ -6,4 +6,6 @@ sdl2_dir
 *.sh
 *.png
 *.ppm
+*.json
 build/*
+.cache
