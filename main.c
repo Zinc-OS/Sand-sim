@@ -227,57 +227,58 @@ void updateCursor(){
 	SDL_RenderFillRect(renderer, &cursor);
 }
 
-uint32_t hue(int frame, int time, uint8_t value){
+uint32_t mix(uint32_t a, uint32_t b, int m, int max){
+	uint32_t out = 0;
+	out+=(a&0xff)*(max-m)/max + (b&0xff)*m/max;
+	
+	out+=(((((a&0x0000ff00)>>8)*(max-m)/max)&0xff)<<8);
+	out+=(((((b&0x0000ff00)>>8)*(m)/max)&0xff)<<8);
+
+	out+=(((((a&0x00ff0000)>>16)*(max-m)/max)&0xff)<<16);
+	out+=(((((b&0x00ff0000)>>16)*(m)/max)&0xff)<<16);
+
+	out+=(((((a&0xff000000)>>24)*(max-m)/max)&0xff)<<24);
+	out+=(((((b&0xff000000)>>24)*(m)/max)&0xff)<<24);
+
+	return out;
+}
+
+uint32_t hue(int frame, int time){
 	int x = frame%(time*3);
-	uint32_t color=0x00;
 	if(x<time){
-		int c1 = 0xff*(time-x)/time;
-		int c2 = 0xff*x/time;
-		color+=c1<<16;
-		color+=c2<<8;
-		color+=value;
+		return mix(0xffff00ff, 0xff00ffff, x, time);
 	} else if(x<time*2){
-		x-=time;
-		int c1 = 0xff*(time-x)/time;
-		int c2 = 0xff*x/time;
-		color+=c1<<8;
-		color+=c2;
-		color+=value<<16;
+		return mix(0xffffff00, 0xffff00ff, x-time, time);
 	} else{
-		x-=time*2;
-		int c1 = 0xff*(time-x)/time;
-		int c2 = 0xff*x/time;
-		color+=c1;
-		color+=c2<<16;
-		color+=value<<8;
+		return mix(0xff00ffff, 0xffffff00, x-time*2, time);
 	}
-	return color;
 }
 
 uint32_t bw(int frame, int time){
 	int x = frame%(time*2);
-	int c=0x00;
 	if(x<time){
-		c = 0xff*x/time;
+		return mix(0xffffffff, 0xff000000, x, time);
 	} else{
-		x-=time;
-		c = 0xff*(time-x)/time;
+		return mix(0xff000000, 0xffffffff, x-time, time);
 	}
-	c+=0x11;
-	c&=0xff;
-	return (c<<16)+(c<<8)+c;
 }
 
 void updateColor(){
-	color = hue(frame, 100, 0xff);
+	color = hue(frame, 100);
 	//color = bw(frame, 100);
 }	
 
+
 void updateSurf(){
+	for(int i=0;i<height;i++){
+		uint32_t col=mix(0xff111244, 0xff000022, i, height);
+		for(int j=0;j<width;j++)
+			surf[i*width+j]=col;
+	}
 	for(int i=0;i<width*height;i++){
 		switch(buff[i].type){
 			case air:
-				surf[i]=0xff111222;
+				//surf[i]=0xff111222;
 				break;
 			case sand:
 				surf[i]=buff[i].color;
@@ -322,7 +323,7 @@ int main(int argc, char* argv[]){
 	{
 		printf("Error %s", SDL_GetError());
 	}
-	
+
 	window = SDL_CreateWindow("Sand Sim", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
