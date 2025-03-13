@@ -219,6 +219,7 @@ void updateSand(){
 	}
 	sw=!sw;
 }
+
 void updateCursor(){
 	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
@@ -287,50 +288,55 @@ void updateSurf(){
 	}
 }
 
+int loop(){
+	uint32_t startTime=SDL_GetTicks();
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderClear(renderer);
+	
+	getInputs();
+	
+	updateColor();
+	updateSand();
+	updateSurf();
+	
+	SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	
+	updateCursor();
+	
+	SDL_RenderPresent(renderer);
+	
+	uint32_t delayTime=(SDL_GetTicks()-startTime);
+	if(delayTime>16)
+		delayTime=16;
+	delayTime=16-delayTime;
+	if(delayTime)
+		SDL_Delay(delayTime);
+	frame++;
+
+}
+
 int main(int argc, char* argv[]){
 	
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 	{
 		printf("Error %s", SDL_GetError());
 	}
-	window = SDL_CreateWindow("Sand", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+	
+	window = SDL_CreateWindow("Sand Sim", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	SDL_ShowCursor(0);
 	rnng = 1;
 	buff = malloc(width*height*sizeof(*buff));
 	for(int i=0;i<width*height;i++){
-		buff[i].type=0;
+		buff[i].type=air;
 	}
 	
 	surf=malloc(width*height*sizeof(uint32_t));
 	
-	while(rnng){
-		uint32_t startTime=SDL_GetTicks();
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(renderer);
-		
-		getInputs();
-		
-		updateColor();
-		updateSand();
-		updateSurf();
-		
-		SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
-		SDL_RenderCopy(renderer, texture, NULL, NULL);
-		
-		updateCursor();
-        
-		SDL_RenderPresent(renderer);
-		
-		uint32_t delayTime=(SDL_GetTicks()-startTime);
-		if(delayTime>16)
-			delayTime=16;
-		delayTime=16-delayTime;
-		if(delayTime)
-			SDL_Delay(delayTime);
-		frame++;
-	}
+	while(rnng)
+		loop();
 	
 	cleanUp();
 	return 0;
