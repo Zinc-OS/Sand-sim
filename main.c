@@ -24,7 +24,9 @@ struct{
 	int middle;
 	int x;
 	int y;
-} mouse = {0,0,0,0,0};
+	int oldx;
+	int oldy;
+} mouse = {0,0,0,0,0,0,0};
 
 int ctrl=0;
 
@@ -75,6 +77,8 @@ void getInputs(){
 				rnng=0;
 				break;
 			case SDL_MOUSEMOTION:
+				mouse.oldx=mouse.x;
+				mouse.oldy=mouse.y;
 				mouse.x = E.motion.x;
 				mouse.y = E.motion.y;
 				break;
@@ -150,7 +154,11 @@ void getInputs(){
 }
 
 void mouseDraw(objType type){
-	int mid = mouse.x+mouse.y*width;
+	int num=2+(cursorsize*2+abs(mouse.x-mouse.oldx)+abs(mouse.y-mouse.oldy))/(cursorsize*2+1);
+	for(int i=0;i<num;i++){
+		int x=mouse.oldx*i/num+mouse.x*(num-i)/num;
+		int y=mouse.oldy*i/num+mouse.y*(num-i)/num;
+		int mid=x+y*width;
 		for(int i=-cursorsize;i<=cursorsize;i++){
 			for(int j=-cursorsize;j<=cursorsize;j++){
 				const int pos=mid+i+j*width;
@@ -161,6 +169,7 @@ void mouseDraw(objType type){
 				buff[pos].velocity=1;
 			}
 		}
+	}
 }
 void updateSand(){
 	for(int i=0;i<width*height;i++){
