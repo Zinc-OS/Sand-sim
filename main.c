@@ -38,14 +38,13 @@ typedef struct{
 	uint32_t color;
 	uint32_t velocity;
 	objType type;
-	int touched;
 } buffer;
 buffer* buff;
 
 uint32_t* surf;
 int rnng;
 SDL_Event E;
-int cursorsize = 4;
+int cursorsize = 3;
 int width = 512, height = 512;
 uint32_t color = 0xffffffff;
 long frame=0;
@@ -172,43 +171,53 @@ void mouseDraw(objType type){
 	}
 }
 
-void updateSand(){
-	for(int i=0;i<width*height;i++){
-		buff[i].touched=0;
+int dit=0;
+
+static inline void updateSandFunc(int j, int way){
+	if(buff[j].type==air&&buff[j-width].type==sand){
+			buff[j].type=sand;
+			buff[j].velocity=buff[j-width].velocity;
+			buff[j].velocity++;
+			buff[j].color=buff[j-width].color;
+			buff[j-width].type=air;
+	} else if(buff[j-width].type==sand&&buff[j-1].type==air&&dit){
+			buff[j-1].color=buff[j-width].color;
+			buff[j-1].type=sand;
+			buff[j-width].type=air;
+			if(way)
+				j--;
+			dit=0;
+	} else if(buff[j-width].type==sand&&buff[j+1].type==air&&!dit){
+			buff[j+1].color=buff[j-width].color;
+			buff[j+1].type=sand;
+			buff[j-width].type=air;
+			if(!way)
+				j++;
+			dit=1;
+	} else{
+			dit=!dit;
 	}
+}
+
+int sw=0;
+void updateSand(){
 	if(mouse.right||mouse.left&&ctrl){
 		mouseDraw(rock);
 	} else if(mouse.left){
 		mouseDraw(sand);
 	}
-	int dit=0;
 	for(int i=(height-1)*width;i>width;i-=width){
-		for(int j=i;j<width+i;j++){
-			if(!buff[j].touched){			
-				if(buff[j].type==air&&buff[j-width].type==sand){
-					buff[j].type=sand;
-					buff[j].velocity=buff[j-width].velocity;
-					buff[j].velocity++;
-					buff[j].color=buff[j-width].color;
-					buff[j-width].type=air;					
-				} else if(buff[j-width].type==sand&&buff[j-1].type==air&&dit){
-					buff[j-1].color=buff[j-width].color;
-					buff[j-1].type=sand;
-					buff[j-width].type=air;
-					j++;
-					dit=0;
-				} else if(buff[j-width].type==sand&&buff[j+1].type==air&&!dit){
-					buff[j+1].color=buff[j-width].color;
-					buff[j+1].type=sand;
-					buff[j-width].type=air;
-					j++;
-					dit=1;
-				} else{
-					dit=!dit;
-				}
+		if(sw){
+			for(int j=i;j<width+i;j++){
+				updateSandFunc(j, 1);
+			}	
+	 	} else {
+			for(int j=width+i-1;j>=i;j--){
+				updateSandFunc(j, 0);
 			}
 		}
 	}
+	sw=!sw;
 }
 void updateCursor(){
 	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
