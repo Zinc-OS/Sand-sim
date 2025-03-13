@@ -243,7 +243,7 @@ uint32_t mix(uint32_t a, uint32_t b, int m, int max){
 	return out;
 }
 
-uint32_t hue(int frame, int time){
+uint32_t hue1(int frame, int time){
 	int x = frame%(time*3);
 	if(x<time){
 		return mix(0xffff00ff, 0xff00ffff, x, time);
@@ -252,6 +252,25 @@ uint32_t hue(int frame, int time){
 	} else{
 		return mix(0xff00ffff, 0xffffff00, x-time*2, time);
 	}
+}
+
+uint32_t hue2(int frame, int time){
+	int x = frame%(time*6);
+	if(x<time){
+		return mix(0xff0000ff, 0xff00ffff, x, time);
+	} else if(x<time*2){
+		return mix(0xff00ffff, 0xff00ff00, x-time, time);
+	} else if(x<time*3){
+		return mix(0xff00ff00, 0xffffff00, x-time*2, time);
+	} else if(x<time*4){
+		return mix(0xffffff00, 0xffff0000, x-time*3, time);
+	} else if(x<time*5){
+		return mix(0xffff0000, 0xffff00ff, x-time*4, time);
+	} else {
+		return mix(0xffff00ff, 0xff0000ff, x-time*5, time);
+	}
+
+
 }
 
 uint32_t bw(int frame, int time){
@@ -264,7 +283,8 @@ uint32_t bw(int frame, int time){
 }
 
 void updateColor(){
-	color = hue(frame, 100);
+	//color = hue1(frame, 100);
+	color = hue2(frame, 100);
 	//color = bw(frame, 100);
 }	
 
@@ -314,7 +334,10 @@ int loop(){
 	if(delayTime)
 		SDL_Delay(delayTime);
 	frame++;
-
+	
+	/**char x[16]="";
+	sprintf(x, "out%4d.ppm", frame);
+	saveImg(x);**/
 }
 
 int main(int argc, char* argv[]){
