@@ -258,8 +258,9 @@ int loop(){
 	updateSand();
 	updateSurf();
 	
-	SDL_UpdateTexture(texture, NULL, surf, width*sizeof(uint32_t));
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_Rect copy={0, 0, width, height};
+	SDL_UpdateTexture(texture, &copy, surf, width*sizeof(uint32_t));
+	SDL_RenderCopy(renderer, texture, &copy, &copy);
 	
 	updateCursor();
 	
