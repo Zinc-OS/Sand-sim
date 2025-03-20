@@ -30,6 +30,7 @@ struct{
 } mouse = {0,0,0,0,0,0,0};
 
 int ctrl=0;
+int bottomBar=0;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -128,7 +129,7 @@ void getInputs(){
 					int oldheight = height;
 					int oldwidth = width;
 					width = E.window.data1;
-					height = E.window.data2;
+					height = E.window.data2-bottomBar;
 					buffer* buff2=malloc(sizeof(buffer)*width*height);
 					surf = realloc(surf, width*height*sizeof(uint32_t));
 					for(int i=0;i<oldheight;i++){
@@ -286,7 +287,7 @@ int main(int argc, char* argv[]){
 		printf("Error %s", SDL_GetError());
 	}
 
-	window = SDL_CreateWindow("Sand Sim", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Sand Sim", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height + bottomBar, SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	SDL_ShowCursor(0);
@@ -295,9 +296,9 @@ int main(int argc, char* argv[]){
 	for(int i=0;i<width*height;i++){
 		buff[i].type=air;
 	}
-	
+
 	surf=malloc(width*height*sizeof(uint32_t));
-	
+
 	while(rnng)
 		loop();
 	
