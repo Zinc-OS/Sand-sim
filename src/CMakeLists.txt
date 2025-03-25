@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(SandSim)
+project(sandsim)
 find_package(SDL2 REQUIRED)
 
-include_directories(SDL2Test ${SDL2_INCLUDE_DIRS})
+include_directories(sandsim ${SDL2_INCLUDE_DIRS})
 
 add_executable(sandsim main.c color.c)
 
