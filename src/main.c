@@ -54,6 +54,7 @@ void cleanUp(){
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	free(buff);
+	free(surf);
 	SDL_Quit();
 }
 
