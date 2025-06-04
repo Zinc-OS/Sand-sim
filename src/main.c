@@ -17,6 +17,7 @@ If not, see <https://www.gnu.org/licenses/>.*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "color.h"
+#include <string.h>
 
 struct{
 	int right;
@@ -29,7 +30,7 @@ struct{
 } mouse = {0,0,0,0,0,0,0};
 
 int ctrl=0;
-int bottomBar=0;
+int bottomBar=128;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -131,11 +132,12 @@ void getInputs(){
 					width = E.window.data1;
 					height = E.window.data2-bottomBar;
 					buffer* buff2=malloc(sizeof(buffer)*width*height);
+					memset(buff2, 0x00, sizeof(buffer)*width*height);
 					surf = realloc(surf, width*height*sizeof(uint32_t));
 					for(int i=0;i<oldheight;i++){
 						for(int j=0;j<oldwidth;j++){
 							if(i*width+j<width*height&&i*width+j>=0)
-								memcpy(buff2+i*width+j, buff+i*oldwidth+j, sizeof(buffer));;
+								memcpy(buff2+i*width+j, buff+i*oldwidth+j, sizeof(buffer));
 						}
 					}
 					free(buff);
@@ -244,6 +246,8 @@ void updateSurf(){
 				break;
 			case rock:
 				surf[i]=0xff999999;
+			default:
+				surf[i]=0xffff00ff;
 		}
 	}
 }

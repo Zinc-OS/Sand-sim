@@ -5,7 +5,7 @@ find_package(SDL2 REQUIRED)
 
 include_directories(sandsim ${SDL2_INCLUDE_DIRS})
 
-add_executable(sandsim main.c color.c)
+add_executable(sandsim main.c color.c letterbox.c)
 
 target_include_directories(sandsim AFTER PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(sandsim ${SDL2_LIBRARIES})
