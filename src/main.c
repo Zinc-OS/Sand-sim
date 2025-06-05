@@ -192,11 +192,14 @@ void mouseDraw(objType type){
 					int size=imgSurf->w;
 					int x=(i+cursorsize)*size/(2*cursorsize);
 					int y=(j+cursorsize)*size/(2*cursorsize);
-					int imgColor=pixels[x+y*size];
-					if(getAlpha(imgColor)>0x7f){
-						buff[pos].type=type;
-						buff[pos].color=imgColor|0xff000000;
-						buff[pos].velocity=1;
+					int imgPos=x+y*size;
+					if(imgPos>=0&&imgPos<size*size){
+						int imgColor=pixels[imgPos];
+						if(getAlpha(imgColor)>0x7f){
+							buff[pos].type=type;
+							buff[pos].color=imgColor|0xff000000;
+							buff[pos].velocity=1;
+						}
 					}
 				} else {
 					buff[pos].type=type;
