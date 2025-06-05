@@ -174,6 +174,9 @@ int getAlpha(uint32_t col){
 }
 
 void mouseDraw(objType type){
+	if(cursorsize<1){
+		cursorsize=1;
+	}
 	int num=2+(cursorsize*2+abs(mouse.x-mouse.oldx)+abs(mouse.y-mouse.oldy))/(cursorsize*2+1);
 	for(int i=0;i<num;i++){
 		int x=mouse.oldx*i/num+mouse.x*(num-i)/num;
@@ -202,6 +205,10 @@ void mouseDraw(objType type){
 				}
 			}
 		}
+	}
+
+	if(useImg){
+		SDL_Delay(100);
 	}
 }
 
@@ -338,9 +345,12 @@ int main(int argc, char* argv[]){
 	}
 
 	surf=malloc(width*height*sizeof(uint32_t));
-
-	setUpImg(argv[1]);
-
+	if(argc>1){
+		setUpImg(argv[1]);
+		useImg=1;
+	} else {
+		useImg=0;
+	}
 	while(rnng)
 		loop();
 	
