@@ -289,6 +289,7 @@ void updateSurf(){
 				break;
 			case rock:
 				surf[i]=0xff999999;
+				break;
 			default:
 				surf[i]=0xffff00ff;
 		}
