@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License along with San
 If not, see <https://www.gnu.org/licenses/>.*/
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,7 +42,7 @@ typedef struct{
 	uint32_t velocity;
 	objType type;
 } buffer;
-buffer* buff;
+buffer* buff=NULL;
 
 uint32_t* surf;
 int rnng;
@@ -131,8 +132,8 @@ void getInputs(){
 					int oldwidth = width;
 					width = E.window.data1;
 					height = E.window.data2-bottomBar;
-					buffer* buff2=malloc(sizeof(buffer)*width*height);
-					memset(buff2, 0x00, sizeof(buffer)*width*height);
+					buffer* buff2=malloc(width*height*sizeof(buffer));
+					memset(buff2, 0x00, width*height*sizeof(buffer));
 					surf = realloc(surf, width*height*sizeof(uint32_t));
 					for(int i=0;i<oldheight;i++){
 						for(int j=0;j<oldwidth;j++){
