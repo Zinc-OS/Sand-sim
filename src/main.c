@@ -19,6 +19,7 @@ If not, see <https://www.gnu.org/licenses/>.*/
 #include <stdio.h>
 #include "color.h"
 #include <string.h>
+#include <letterbox.h>
 
 struct{
 	int right;
@@ -32,10 +33,14 @@ struct{
 
 int ctrl=0;
 int bottomBar=128;
+int useImg=1;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
+SDL_Surface* imgSurf;
+SDL_Texture* imgTex;
+
 typedef enum { air, sand, rock} objType;
 typedef struct{
 	uint32_t color;
@@ -70,6 +75,14 @@ void saveImg(char *name){
 	}
 	fclose(out);
 	printf("saved %s\n", name);
+}
+
+void setUpImg(char* file){
+	printf("file:\"%s\"\n", file);
+	fflush(stdout);
+	imgSurf=IMG_Load(file);
+	letterbox(&imgSurf);
+	imgTex=SDL_CreateTextureFromSurface(renderer, imgSurf);
 }
 
 void getInputs(){
@@ -156,6 +169,10 @@ void getInputs(){
 	}
 }
 
+int getAlpha(uint32_t col){
+	return (col>>24)&0xff;
+}
+
 void mouseDraw(objType type){
 	int num=2+(cursorsize*2+abs(mouse.x-mouse.oldx)+abs(mouse.y-mouse.oldy))/(cursorsize*2+1);
 	for(int i=0;i<num;i++){
@@ -167,9 +184,22 @@ void mouseDraw(objType type){
 				const int pos=mid+i+j*width;
 				if(pos<0||pos>width*height)
 					continue;
-				buff[pos].type=type;
-				buff[pos].color=color;
-				buff[pos].velocity=1;
+				if(useImg){
+					uint32_t *pixels=imgSurf->pixels;
+					int size=imgSurf->w;
+					int x=(i+cursorsize)*size/(2*cursorsize);
+					int y=(j+cursorsize)*size/(2*cursorsize);
+					int imgColor=pixels[x+y*size];
+					if(getAlpha(imgColor)>0x7f){
+						buff[pos].type=type;
+						buff[pos].color=imgColor|0xff000000;
+						buff[pos].velocity=1;
+					}
+				} else {
+					buff[pos].type=type;
+					buff[pos].color=color;
+					buff[pos].velocity=1;
+				}
 			}
 		}
 	}
@@ -228,7 +258,12 @@ void updateCursor(){
 	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	SDL_SetRenderDrawColor(renderer, (color&0xff0000)>>16, (color&0xff00)>>8, color&0xff, SDL_ALPHA_OPAQUE);
-	SDL_RenderFillRect(renderer, &cursor);
+	if(useImg){
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_RenderCopy(renderer, imgTex, NULL, &cursor);
+	} else {
+		SDL_RenderFillRect(renderer, &cursor);
+	}
 }
 
 void updateSurf(){
@@ -303,6 +338,8 @@ int main(int argc, char* argv[]){
 	}
 
 	surf=malloc(width*height*sizeof(uint32_t));
+
+	setUpImg(argv[1]);
 
 	while(rnng)
 		loop();
