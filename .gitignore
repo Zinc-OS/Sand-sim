@@ -6,4 +6,5 @@ sdl2_dir
 *.sh
 *.json
 build/*
+*~
 .cache

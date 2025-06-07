@@ -269,7 +269,7 @@ static inline void updateSandFunc(int j, int way){
 
 int sw=0;
 void updateSand(){
-	if(mouse.left){
+	if(mouse.left&&mouse.y<=height){
 		mouseDraw(currentType);
 	}
 	for(int i=(height-1)*width;i>width;i-=width){
