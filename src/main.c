@@ -33,7 +33,7 @@ struct{
 
 int ctrl=0;
 int bottomBar=128;
-int useImg=1;
+int useImg;
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -81,8 +81,14 @@ void setUpImg(char* file){
 	printf("file:\"%s\"\n", file);
 	fflush(stdout);
 	imgSurf=IMG_Load(file);
-	letterbox(&imgSurf);
-	imgTex=SDL_CreateTextureFromSurface(renderer, imgSurf);
+	if(imgSurf==NULL){
+		useImg=0;
+		return;
+	} else {
+		letterbox(&imgSurf);
+		imgTex=SDL_CreateTextureFromSurface(renderer, imgSurf);
+		useImg=1;
+	}
 }
 
 void getInputs(){
@@ -351,7 +357,6 @@ int main(int argc, char* argv[]){
 	surf=malloc(width*height*sizeof(uint32_t));
 	if(argc>1){
 		setUpImg(argv[1]);
-		useImg=1;
 	} else {
 		useImg=0;
 	}
