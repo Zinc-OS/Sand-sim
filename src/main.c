@@ -38,10 +38,10 @@ int useImg;
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* texture;
-SDL_Surface* imgSurf;
-SDL_Texture* imgTex;
-
-typedef enum { air, sand, rock} objType;
+SDL_Surface* imgSurf=NULL;
+SDL_Texture* imgTex=NULL;
+SDL_Texture* imageButtonTexture;
+typedef enum { air, sand, rock, typeLength} objType;
 typedef struct{
 	uint32_t color;
 	uint32_t velocity;
@@ -55,6 +55,9 @@ SDL_Event E;
 int cursorsize = 3;
 int width = 512, height = 512;
 long frame=0;
+objType currentType=sand;
+SDL_Texture* typeImg[typeLength];
+const uint32_t rockColor=0xff999999;
 
 void cleanUp(){
 	SDL_DestroyTexture(texture);
@@ -63,6 +66,10 @@ void cleanUp(){
 	free(buff);
 	free(surf);
 	SDL_Quit();
+	for(int i=0;i<typeLength;i++){
+		SDL_DestroyTexture(typeImg[i]);
+	}
+
 }
 
 void saveImg(char *name){
@@ -113,6 +120,17 @@ void getInputs(){
 						break;
 					case SDL_BUTTON_LEFT:
 						mouse.left = 1;
+						if(mouse.y>height){
+							if(mouse.x<128){
+								currentType++;
+								if(currentType==typeLength)
+									currentType=0;
+							} else if(mouse.x<256){
+								if(imgTex!=NULL){
+									useImg=!useImg;	
+								}
+							}
+						}
 						break;
 				}
 				break;
@@ -217,7 +235,7 @@ void mouseDraw(objType type){
 	}
 
 	if(useImg){
-		SDL_Delay(100);
+		SDL_Delay(50);
 	}
 }
 
@@ -251,10 +269,8 @@ static inline void updateSandFunc(int j, int way){
 
 int sw=0;
 void updateSand(){
-	if(mouse.right||mouse.left&&ctrl){
-		mouseDraw(rock);
-	} else if(mouse.left){
-		mouseDraw(sand);
+	if(mouse.left){
+		mouseDraw(currentType);
 	}
 	for(int i=(height-1)*width;i>width;i-=width){
 		if(sw){
@@ -273,12 +289,32 @@ void updateSand(){
 void updateCursor(){
 	SDL_Rect cursor={mouse.x-cursorsize, mouse.y-cursorsize, cursorsize*2+1, cursorsize*2+1};
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-	SDL_SetRenderDrawColor(renderer, (color&0xff0000)>>16, (color&0xff00)>>8, color&0xff, SDL_ALPHA_OPAQUE);
-	if(useImg){
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_RenderCopy(renderer, imgTex, NULL, &cursor);
+	uint32_t drawColor;
+	switch(currentType){
+		case air:
+			drawColor=0xff000000;
+			break;
+		case sand:
+			drawColor=color;
+			break;
+		case rock:
+			drawColor=rockColor;
+			break;
+		default:
+			color=0xffff00ff;
+	}
+
+	SDL_SetRenderDrawColor(renderer, (drawColor&0xff0000)>>16, (drawColor&0xff00)>>8, drawColor&0xff, SDL_ALPHA_OPAQUE);
+	if(mouse.y<=height){
+		if(useImg){
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+			SDL_RenderCopy(renderer, imgTex, NULL, &cursor);
+		} else {
+			SDL_RenderFillRect(renderer, &cursor);
+		}
+		SDL_ShowCursor(0);
 	} else {
-		SDL_RenderFillRect(renderer, &cursor);
+		SDL_ShowCursor(1);
 	}
 }
 
@@ -297,7 +333,7 @@ void updateSurf(){
 				surf[i]=buff[i].color;
 				break;
 			case rock:
-				surf[i]=0xff999999;
+				surf[i]=rockColor;
 				break;
 			default:
 				surf[i]=0xffff00ff;
@@ -318,8 +354,14 @@ int loop(){
 	
 	SDL_Rect copy={0, 0, width, height};
 	SDL_UpdateTexture(texture, &copy, surf, width*sizeof(uint32_t));
-	SDL_RenderCopy(renderer, texture, &copy, &copy);
 	
+	SDL_RenderCopy(renderer, texture, &copy, &copy);
+
+	SDL_Rect buttonRect={0,height, 128, 128};
+	SDL_RenderCopy(renderer, typeImg[currentType], NULL, &buttonRect);  
+	buttonRect.x=128;
+	SDL_RenderCopy(renderer, imageButtonTexture, NULL, &buttonRect); 
+
 	updateCursor();
 	
 	SDL_RenderPresent(renderer);
@@ -337,8 +379,7 @@ int loop(){
 	saveImg(x);**/
 }
 
-int main(int argc, char* argv[]){
-	
+void setUp(int argc, char * argv[]){
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 	{
 		printf("Error %s", SDL_GetError());
@@ -360,6 +401,23 @@ int main(int argc, char* argv[]){
 	} else {
 		useImg=0;
 	}
+	char *fnames[3]={"air_button.png","sand_button.png","rock_button.png"};
+	SDL_Surface* buttonSurf;
+	for(int i=0;i<typeLength;i++){
+		buttonSurf=IMG_Load(fnames[i]);
+		typeImg[i]=SDL_CreateTextureFromSurface(renderer, buttonSurf);
+		SDL_FreeSurface(buttonSurf);		
+	}
+	buttonSurf=IMG_Load("image_button.png");
+	imageButtonTexture=SDL_CreateTextureFromSurface(renderer, buttonSurf);
+	SDL_FreeSurface(buttonSurf);
+
+
+}
+
+int main(int argc, char* argv[]){
+	setUp(argc, argv);	
+
 	while(rnng)
 		loop();
 	
