@@ -20,6 +20,8 @@ If not, see <https://www.gnu.org/licenses/>.*/
 #include "color.h"
 #include <string.h>
 #include <letterbox.h>
+#include <nfd.h>
+#include <nfd_sdl2.h> 
 
 struct{
 	int right;
@@ -41,6 +43,7 @@ SDL_Texture* texture;
 SDL_Surface* imgSurf=NULL;
 SDL_Texture* imgTex=NULL;
 SDL_Texture* imageButtonTexture;
+SDL_Texture* loadImageButtonTexture;
 typedef enum { air, sand, rock, typeLength} objType;
 typedef struct{
 	uint32_t color;
@@ -65,11 +68,12 @@ void cleanUp(){
 	SDL_DestroyWindow(window);
 	free(buff);
 	free(surf);
-	SDL_Quit();
 	for(int i=0;i<typeLength;i++){
 		SDL_DestroyTexture(typeImg[i]);
 	}
-
+	SDL_DestroyTexture(imageButtonTexture);
+	SDL_Quit();
+	NFD_Quit();
 }
 
 void saveImg(char *name){
@@ -95,6 +99,17 @@ void setUpImg(char* file){
 		letterbox(&imgSurf);
 		imgTex=SDL_CreateTextureFromSurface(renderer, imgSurf);
 		useImg=1;
+	}
+}
+
+void getImageFromFileDialog(){
+	nfdu8char_t* fname;
+	nfdu8filteritem_t filters[1] = {"Images", "png,jpg,jpeg,bmp,gif,pcx"}; 
+	nfdopendialogu8args_t args={filters, 1, 0, 0};
+	nfdresult_t res = NFD_OpenDialogU8_With(&fname, &args);
+	if(res==NFD_OKAY){
+		setUpImg(fname);
+		NFD_FreePathU8(fname);
 	}
 }
 
@@ -129,6 +144,8 @@ void getInputs(){
 								if(imgTex!=NULL){
 									useImg=!useImg;	
 								}
+							} else if(mouse.x<384){
+								getImageFromFileDialog();	
 							}
 						}
 						break;
@@ -361,6 +378,9 @@ int loop(){
 	SDL_RenderCopy(renderer, typeImg[currentType], NULL, &buttonRect);  
 	buttonRect.x=128;
 	SDL_RenderCopy(renderer, imageButtonTexture, NULL, &buttonRect); 
+	buttonRect.x=256;
+	SDL_RenderCopy(renderer, loadImageButtonTexture, NULL, &buttonRect); 
+
 
 	updateCursor();
 	
@@ -377,6 +397,13 @@ int loop(){
 	/**char x[16]="";
 	sprintf(x, "out%4d.ppm", frame);
 	saveImg(x);**/
+}
+
+SDL_Texture* loadImg(char* fname){
+	SDL_Surface* buttonSurf = IMG_Load(fname);
+	SDL_Texture* ret = SDL_CreateTextureFromSurface(renderer, buttonSurf);
+	SDL_FreeSurface(buttonSurf);
+	return ret;
 }
 
 void setUp(int argc, char * argv[]){
@@ -404,15 +431,12 @@ void setUp(int argc, char * argv[]){
 	char *fnames[3]={"air_button.png","sand_button.png","rock_button.png"};
 	SDL_Surface* buttonSurf;
 	for(int i=0;i<typeLength;i++){
-		buttonSurf=IMG_Load(fnames[i]);
-		typeImg[i]=SDL_CreateTextureFromSurface(renderer, buttonSurf);
-		SDL_FreeSurface(buttonSurf);		
+		typeImg[i]=loadImg(fnames[i]);
 	}
-	buttonSurf=IMG_Load("image_button.png");
-	imageButtonTexture=SDL_CreateTextureFromSurface(renderer, buttonSurf);
-	SDL_FreeSurface(buttonSurf);
 
-
+	imageButtonTexture=loadImg("image_button.png");
+	loadImageButtonTexture=loadImg("load_image_button.png");
+	NFD_Init();
 }
 
 int main(int argc, char* argv[]){
