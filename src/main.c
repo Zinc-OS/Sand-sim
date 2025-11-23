@@ -126,6 +126,9 @@ void getInputs(){
 				mouse.y = E.motion.y;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
+				if(useImg){
+					SDL_Delay(24);
+				}
 				switch(E.button.button){
 					case SDL_BUTTON_RIGHT:
 						mouse.right = 1;
@@ -249,10 +252,6 @@ void mouseDraw(objType type){
 				}
 			}
 		}
-	}
-
-	if(useImg){
-		SDL_Delay(50);
 	}
 }
 
