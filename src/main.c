@@ -206,8 +206,9 @@ void getInputs(){
 				}
 				break;
 			case SDL_MOUSEWHEEL:
-				if(cursorsize>0||E.wheel.y>0)
-					cursorsize+=E.wheel.y;
+				if(cursorsize>0||E.wheel.y>0){
+					cursorsize+=((cursorsize>>3)+1)*E.wheel.y;
+				}
 				break;
 		}
 	}
